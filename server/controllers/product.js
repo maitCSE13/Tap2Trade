@@ -2,11 +2,56 @@ const Product = require("../models/product");
 const User = require("../models/user");
 const slugify = require("slugify");
 
+const pup = require("puppeteer");
+
+async function getPrices(data) {
+  let browser = await pup.launch({
+    headless: true,
+    defaultViewport: false,
+    args: ["--start-maximized"],
+  });
+
+  let pages = await browser.pages();
+  let res = await comparePrices(data, await browser.newPage());
+  return res;
+  await browser.close();
+}
+async function comparePrices(product, tab) {
+  try {
+    await tab.goto(`https://www.smartprix.com/products/?q=${product}`);
+    await tab.waitForSelector("a.button.shop", { visible: true });
+    let btn = await tab.$("a.button.shop")
+    let link = await tab.evaluate(function (ele) {
+      return ele.getAttribute("href");
+    }, btn);
+    await tab.goto(`https://www.smartprix.com${link}`)
+    await tab.waitForSelector("#compare-prices td.store-logo");
+    let elem = await tab.$$("#compare-prices td.store-logo")
+
+    let allstores = [];
+    for(const ele of elem){
+      let rowlist = await tab.evaluate(ele =>{
+        return {"sname": ele.querySelector("a").getAttribute("title") ,"link": ele.querySelector("a").getAttribute("href") , "price" : ele.parentElement.children[3].textContent.split(" ")[0].substring(1).replaceAll(",","") };
+      },ele)
+      allstores.push(rowlist)
+    };
+    await tab.close();
+    return allstores;
+  } catch (err) {
+    tab.close();
+    return [];
+  }
+}
 exports.create = async (req, res) => {
   try {
-    console.log(req.body);
+    let prices = await getPrices(req.body.title)
+    prices.push({sname: 'Tap2Trade', price: req.body.price, link: undefined})
+    prices.sort((a, b) => a.price.localeCompare(b.price))
+    req.body.cprices = prices;
     req.body.slug = slugify(req.body.title);
+    console.log(req.body);
     const newProduct = await new Product(req.body).save();
+    newProduct
     res.json(newProduct);
   } catch (err) {
     console.log(err);
@@ -50,6 +95,10 @@ exports.read = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     if (req.body.title) {
+      let prices = await getPrices(req.body.title)
+      prices.push({sname: 'Tap2Trade', price: req.body.price, link: undefined})
+      prices.sort((a, b) => a.price.localeCompare(b.price))
+      req.body.cprices = prices;
       req.body.slug = slugify(req.body.title);
     }
     const updated = await Product.findOneAndUpdate(
