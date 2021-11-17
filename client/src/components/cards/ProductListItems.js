@@ -1,7 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
+ 
+
 
 const ProductListItems = ({ product }) => {
+  console.log(product);
   const {
     price,
     category,
@@ -11,6 +14,7 @@ const ProductListItems = ({ product }) => {
     brand,
     quantity,
     sold,
+    cprices,
   } = product;
 
   return (
@@ -83,6 +87,24 @@ const ProductListItems = ({ product }) => {
           {sold}
         </span>
       </li>
+
+      {cprices && (
+        <>
+          <br/>
+          <h5> Other Pricing </h5>  <br/>
+
+      {cprices.map((s) => (
+             <li className="list-group-item">
+             <a href={s.link} > {s.sname} </a>
+             <span className="label label-default label-pill pull-xs-right">
+               {s.price}
+             </span>
+           </li>
+           ))}
+         
+        </>
+      )}
+
     </ul>
   );
 };

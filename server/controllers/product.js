@@ -97,7 +97,7 @@ exports.update = async (req, res) => {
     if (req.body.title) {
       let prices = await getPrices(req.body.title)
       prices.push({sname: 'Tap2Trade', price: req.body.price, link: undefined})
-      prices.sort((a, b) => a.price.localeCompare(b.price))
+      prices.sort((a,b) => (a.price > b.price) ? 1 : ((b.price > a.price) ? -1 : 0))
       req.body.cprices = prices;
       req.body.slug = slugify(req.body.title);
     }
