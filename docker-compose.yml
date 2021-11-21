@@ -9,7 +9,7 @@ services:
       dockerfile: ./Dockerfile
     image: "tap2trade/backend"
     ports:
-      - "8080:8080"
+      - "8000:8000"
   frontend:
     build:
       context: ./client
@@ -17,6 +17,6 @@ services:
     image: "tap2trade/frontend"
     stdin_open: true
     ports:
-      - "3030:3030"
+      - "3030:80"
     links:
       - "backend:be"

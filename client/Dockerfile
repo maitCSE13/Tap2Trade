@@ -1,18 +1,20 @@
-
-FROM node:14.17.3 AS production
+FROM node:14 AS builder
 
 LABEL version="1.0"
-LABEL description="This is the base docker image for the Tweet Sentiment Analysis frontend react app."
+LABEL description="This is the base docker image for the Tap2Trade s frontend react app."
 LABEL maintainer = ["tap2trade11@gmail.com", "govind,meq752dhingra@gmail.com"]
 
-WORKDIR /app/client
-
-COPY ["package.json", "package-lock.json", "./"]
-
-RUN npm install --no-optional && npm cache clean --force
+WORKDIR /app
 
 COPY . .
+RUN npm install
+RUN yarn build
 
-EXPOSE 3030
+FROM nginx:alpine
 
-CMD ["npm", "start"]
+WORKDIR /usr/share/nginx/html
+
+COPY --from=builder /app/build .
+
+CMD [ "nginx", "-g", "daemon off;"]
+
