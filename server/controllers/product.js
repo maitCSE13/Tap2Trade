@@ -13,8 +13,8 @@ async function getPrices(data) {
 
   let pages = await browser.pages();
   let res = await comparePrices(data, await browser.newPage());
-  return res;
   await browser.close();
+  return res;
 }
 async function comparePrices(product, tab) {
   try {
@@ -25,9 +25,12 @@ async function comparePrices(product, tab) {
       return ele.getAttribute("href");
     }, btn);
     await tab.goto(`https://www.smartprix.com${link}`)
+    // let dbox = await tab.waitForSelector("#full-specs.spec-box")
+    // let desc = await tab.evaluate(function (ele) {
+    //   return ele.innerHTML;
+    // }, dbox);
     await tab.waitForSelector("#compare-prices td.store-logo");
     let elem = await tab.$$("#compare-prices td.store-logo")
-
     let allstores = [];
     for(const ele of elem){
       let rowlist = await tab.evaluate(ele =>{

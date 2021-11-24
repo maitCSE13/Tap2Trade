@@ -1,4 +1,4 @@
-FROM node:14 AS builder
+FROM node:14.17.3 AS builder
 
 LABEL version="1.0"
 LABEL description="This is the base docker image for the Tap2Trade s frontend react app."
@@ -7,7 +7,7 @@ LABEL maintainer = ["tap2trade11@gmail.com", "govind,meq752dhingra@gmail.com"]
 WORKDIR /app
 
 COPY . .
-RUN npm install
+RUN npm install --production
 RUN yarn build
 
 FROM nginx:alpine
