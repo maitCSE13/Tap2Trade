@@ -45,12 +45,55 @@ async function comparePrices(product, tab) {
     return [];
   }
 }
+async function initData(data) {
+  let browser = await pup.launch({
+    headless: true,
+    defaultViewport: false,
+    args: ["--start-maximized"],
+  });
+
+  let pages = await browser.pages();
+  let res = await getData(data, await browser.newPage());
+  await browser.close();
+  return res;
+}
+async function getData(product, tab) {
+  try {
+    await tab.goto(`https://www.smartprix.com/products/?q=${product}`);
+    await tab.waitForSelector("a.button.shop", { visible: true });
+    let btn = await tab.$("a.button.shop")
+    let link = await tab.evaluate(function (ele) {
+      return ele.getAttribute("href");
+    }, btn);
+    await tab.goto(`https://www.smartprix.com${link}`)
+    let dbox = await tab.waitForSelector("#full-specs.spec-box")
+    let desc = await tab.evaluate(function (ele) {
+      return ele.innerHTML;
+    }, dbox);
+    await tab.waitForSelector("#compare-prices td.store-logo");
+    let elem = await tab.$$("#compare-prices td.store-logo")
+    let allstores = [];
+    for(const ele of elem){
+      let rowlist = await tab.evaluate(ele =>{
+        return {"sname": ele.querySelector("a").getAttribute("title") ,"link": ele.querySelector("a").getAttribute("href") , "price" : ele.parentElement.children[3].textContent.split(" ")[0].substring(1).replaceAll(",","") };
+      },ele)
+      allstores.push(rowlist)
+    };
+    await tab.close();
+    return {"prices": allstores, "desc": desc};
+  } catch (err) {
+    tab.close();
+    return [];
+  }
+}
 exports.create = async (req, res) => {
   try {
-    let prices = await getPrices(req.body.title)
+    let data = await initData(req.body.title)
+    let prices = data["prices"];
     prices.push({sname: 'Tap2Trade', price: req.body.price, link: undefined})
     prices.sort((a, b) => a.price.localeCompare(b.price))
     req.body.cprices = prices;
+    req.body.dtable = data["desc"];
     req.body.slug = slugify(req.body.title);
     console.log(req.body);
     const newProduct = await new Product(req.body).save();

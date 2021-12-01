@@ -19,7 +19,13 @@ const productSchema = new mongoose.Schema(
     description: {
       type: String,
       required: true,
-      maxlength: 2000,
+      maxlength: 1000,
+      text: true,
+    },
+    dtable: {
+      type: String,
+      required: true,
+      maxlength: 10000,
       text: true,
     },
     price: {
