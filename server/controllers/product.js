@@ -95,7 +95,6 @@ exports.create = async (req, res) => {
     req.body.cprices = prices;
     req.body.dtable = data["desc"];
     req.body.slug = slugify(req.body.title);
-    console.log(req.body);
     const newProduct = await new Product(req.body).save();
     newProduct
     res.json(newProduct);

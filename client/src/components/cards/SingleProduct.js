@@ -14,20 +14,28 @@ import { useSelector, useDispatch } from "react-redux";
 import { addToWishlist } from "../../functions/user";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
-
+import parse from 'html-react-parser'
 const { TabPane } = Tabs;
 
 // this is childrend component of Product page
 const SingleProduct = ({ product, onStarClick, star }) => {
   const [tooltip, setTooltip] = useState("Click to add");
-
+  
   // redux
   const { user, cart } = useSelector((state) => ({ ...state }));
   const dispatch = useDispatch();
   // router
   let history = useHistory();
 
-  const { title, images, description, _id } = product;
+  const { title, images, description, _id, dtable } = product;
+  let temp = "";
+  temp += dtable;
+  temp = temp.split("</a>")[1];
+  const yourHtmlString = "" + temp;
+  let styling = {
+    fontWeight : 900,
+    color: "red"
+  }
 
   const handleAddToCart = () => {
     // create cart array
@@ -82,12 +90,22 @@ const SingleProduct = ({ product, onStarClick, star }) => {
         ) : (
           <Card cover={<img src={Laptop} className="mb-3 card-image" />}></Card>
         )}
+        <>
+        </>
 
         <Tabs type="card">
-          <TabPane tab="Description" key="1">
+        <TabPane tab="Specification" key="1">
+        {  dtable && (
+          <div className={{color: "red"}}>
+            {parse(yourHtmlString)}
+          </div>
+        )
+       }
+          </TabPane>
+          <TabPane tab="Description" key="2">
             {description && description}
           </TabPane>
-          <TabPane tab="More" key="2">
+          <TabPane tab="More" key="3">
             Call use on xxxx xxx xxx to learn more about this product.
           </TabPane>
         </Tabs>
